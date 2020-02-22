@@ -1,28 +1,13 @@
-import * as fs from 'fs';
-import chalk from 'chalk';
+import {getUserById} from './UserRepository';
+import { billUser } from './bill';
 
 export function cli(args) {
   const operation = parseArguments(args);
   const store = require('./store.json')
 
   if (operation.type === 'bill') {
-    const currentUser = store.find(item => item.id === Number(operation.userId));
-    if (!currentUser) {
-      throw new Error(`No user with id ${operation.userId}`)
-    }
-    if (currentUser.canWithdraw &&  currentUser.balance >= Number(operation.amount)) {
-      currentUser.balance -= operation.amount;
-      currentUser.canWithdraw = !(currentUser.amount === 0);
-
-      fs.writeFile(`${__dirname}/store.json`, JSON.stringify(store), function(err) {
-        if (err) {
-          throw new Error(err.message);
-        }
-        console.log(chalk.greenBright(`Successfully billed ${currentUser.name} ${operation.amount}`));
-      })
-    } else {
-      throw new Error(`Unable to bill ${currentUser.name}`)
-    }
+    const currentUser = getUserById(operation.userId)
+    billUser(currentUser, operation.amount);
   }
 }
 
